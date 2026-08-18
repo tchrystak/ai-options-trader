@@ -1,41 +1,41 @@
-let tradeTriggered = false;
+let lastTradeDate = null; // The starting state is nothing is executed
 
 setInterval(() => {
+
   const now = new Date();
-  console.log("Checking the market clock..."); // object representing the current date and time stored in a variable called now
 
-  const centralTime = now.toLocaleString("en-US", {
+  // Get the date
+  const tradingDate = new Intl.DateTimeFormat("en-US", {
     timeZone: "America/Chicago",
-  }); // Display the date/time in America/Chicago timezone
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now);
 
-  console.log(centralTime);
-
+  // Get the current hour in Central Time using a 24-hour clock
   const hour = new Intl.DateTimeFormat("en-US", {
     timeZone: "America/Chicago",
     hour: "numeric",
     hour12: false,
-  }).format(now); //Create a date/time formatter using U.S. formatting, tell it to use Chicago's timezone and give me the numeric hour, then format the current moment and store the result in hour
+  }).format(now); 
 
-  console.log(hour);
-
+  // Get the current minute in Central Time
   const minute = new Intl.DateTimeFormat("en-US", {
     timeZone: "America/Chicago",
     minute: "numeric",
-  }).format(now); // Create a date/time formatter using U.S. formatting,
-  // tell it to use Chicago's timezone and give me the numeric minute,
-  // then format the current moment and store the result in minute
+  }).format(now);
 
+  // convert the hour and minute from strings to numbers
   const hourNumber = Number(hour);
   const minuteNumber = Number(minute);
 
-  if (hourNumber === 17 && minuteNumber === 35 && tradeTriggered === false) {
-    console.log("It's 8:45 AM!!");
+  // Is it 8:45?
+  const isTradeTime = hourNumber === 8 && minuteNumber === 45;
 
-    tradeTriggered = true;
-  } else if (hourNumber === 17 && minuteNumber === 35 && tradeTriggered === true){
-    console.log("8:45 already executed!")
+  // Should we execute today's trade yet? 
+  if (isTradeTime && tradingDate !== lastTradeDate) {
+    console.log("It's 8:45 AM — execute trade!");
 
-  } else {
-        console.log("Waiting for 8:45 AM...");
+    lastTradeDate = tradingDate;
   }
 }, 1000);
