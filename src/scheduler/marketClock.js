@@ -1,8 +1,9 @@
 import { placePaperTrade } from "../trading/paperTrade.js";
+import { findNvdaPut } from "../trading/findNvdaPut.js";
 
 let lastTradeDate = null; // The starting state is nothing is executed
 
-setInterval(() => {
+setInterval(async () => {
   const now = new Date();
   console.log("Checking the market clock...");
 
@@ -36,18 +37,13 @@ setInterval(() => {
 
   // Should we execute today's trade yet?
   if (isTradeTime && tradingDate !== lastTradeDate) {
-    console.log("It's 8:45 AM — execute trade!");
+    console.log("It's 8:45 AM — finding NVDA PUT...");
 
-    const paperTrade = placePaperTrade(
-      "NVDA",
-      "PUT",
-      180,
-      "2026-08-21",
-      1,
-      2.5,
-    );
+  const selectedOption = await findNvdaPut();
 
-    console.log(paperTrade);
+  const paperTrade = placePaperTrade(selectedOption);
+
+  console.log("Paper trade:", paperTrade);
 
     lastTradeDate = tradingDate;
   }
