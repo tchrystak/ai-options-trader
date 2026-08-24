@@ -1,19 +1,11 @@
-
-function placePaperTrade(
-  symbol,
-  optionType,
-  strikePrice,
-  expirationDate,
-  quantity,
-  entryPrice,
-) {
+function placePaperTrade(optionData) {
   const trade = {
-    symbol: symbol,
-    optionType: optionType,
-    strikePrice: strikePrice,
-    expirationDate: expirationDate,
-    quantity: quantity,
-    entryPrice: entryPrice,
+    symbol: optionData.symbol,
+    optionType: optionData.optionType,
+    strikePrice: optionData.strikePrice,
+    expirationDate: optionData.expirationDate,
+    quantity: optionData.quantity,
+    entryPrice: optionData.entryPrice,
   };
 
   return trade;
