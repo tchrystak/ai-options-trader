@@ -1,5 +1,7 @@
 import "dotenv/config";
 import { Alpaca } from "@alpacahq/alpaca-trade-api";
+import { waitForFill } from "./waitForFill.js";
+import { manageExit } from "./exitManager.js";
 
 const alpaca = new Alpaca({
   keyId: process.env.APCA_API_KEY_ID,
@@ -28,12 +30,28 @@ async function placePaperTrade(optionData, submitOrder = false) {
   console.log("Order request:", orderRequest);
 
   if (submitOrder) {
-  const submittedOrder = await alpaca.trading.orders.limit(orderRequest);
+    // Submit the BUY order to Alpaca Paper
+    const submittedOrder = await alpaca.trading.orders.limit(orderRequest);
 
-  return submittedOrder;
-}
+    // Wait until Alpaca confirms the BUY order has filled
+    const filledOrder = await waitForFill(submittedOrder.id);
 
-return trade;
+    // Get the actual price Alpaca filled the BUY at
+    const fillPrice = Number(filledOrder.filledAvgPrice);
+
+    // Monitor the position and automatically sell at
+    // either the 15% stop-loss or 45% profit target
+    const exitOrder = await manageExit(
+      filledOrder.symbol,
+      fillPrice,
+      Number(filledOrder.qty),
+    );
+
+    return exitOrder;
+  }
+
+  // Safe mode: return the trade without submitting it
+  return trade;
 }
 
 export { placePaperTrade };
