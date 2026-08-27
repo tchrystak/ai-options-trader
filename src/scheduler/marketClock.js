@@ -41,7 +41,7 @@ setInterval(async () => {
 
   const selectedOption = await findNvdaPut();
 
-  const paperTrade = placePaperTrade(selectedOption);
+  const paperTrade = await placePaperTrade(selectedOption);
 
   console.log("Paper trade:", paperTrade);
 
