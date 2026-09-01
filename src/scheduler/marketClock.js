@@ -1,4 +1,5 @@
-import { placePaperTrade } from "../trading/paperTrade.js";
+import { placePaperTrade, findOrderByClientId } from "../trading/paperTrade.js";
+
 import { findNvdaPut } from "../trading/findNvdaPut.js";
 
 // Remember whether today's 8:45 trade has already been triggered
@@ -40,28 +41,42 @@ setInterval(async () => {
   const isTradeTime = hourNumber === 8 && minuteNumber === 45;
 
   if (isTradeTime && tradingDate !== lastTradeDate && !tradeInProgress) {
-    // IMPORTANT:
-    // Lock today's trade BEFORE making any async calls.
-    // This prevents the scheduler from submitting another
-    // contract on the next 1-second interval.
+    // Lock today's trade BEFORE making any async calls
     lastTradeDate = tradingDate;
     tradeInProgress = true;
+
+    // Create one unique Alpaca order ID for today's trade
+    const clientOrderId = `nvda-845-${tradingDate.replaceAll("/", "-")}`;
 
     console.log("It's 8:45 AM — finding NVDA PUT...");
 
     try {
+      // Check Alpaca in case today's order already exists
+      const existingOrder = await findOrderByClientId(clientOrderId);
+
+      if (existingOrder) {
+        console.log(
+          "Today's 8:45 order already exists. Skipping duplicate trade.",
+        );
+
+        return;
+      }
+
       // Find the closest OTM NVDA PUT
       const selectedOption = await findNvdaPut();
 
       // Submit ONE paper trade
-      const paperTrade = await placePaperTrade(selectedOption, true);
+      const paperTrade = await placePaperTrade(
+        selectedOption,
+        true,
+        clientOrderId,
+      );
 
       console.log("Paper trade:", paperTrade);
     } catch (error) {
       console.error("8:45 trade error:", error.message);
     } finally {
-      // The trade workflow has finished,
-      // but today's date remains locked.
+      // Today's date stays locked even after the trade finishes
       tradeInProgress = false;
     }
   }

@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { Alpaca } from "@alpacahq/alpaca-trade-api";
+import { Alpaca, NotFoundError } from "@alpacahq/alpaca-trade-api";
 import { waitForFill } from "./waitForFill.js";
 import { manageExit } from "./exitManager.js";
 
@@ -9,7 +9,31 @@ const alpaca = new Alpaca({
   paper: true,
 });
 
-async function placePaperTrade(optionData, submitOrder = false) {
+// Check whether Alpaca already has today's 8:45 entry order
+async function findOrderByClientId(clientOrderId) {
+  try {
+    const order =
+      await alpaca.trading.orders.getOrderByClientOrderId({
+        clientOrderId: clientOrderId,
+      });
+
+    return order;
+  } catch (error) {
+    // A 404 means today's order does not exist yet
+    if (error instanceof NotFoundError) {
+      return null;
+    }
+
+    // Any other error is unexpected, so do not hide it
+    throw error;
+  }
+}
+
+async function placePaperTrade(
+  optionData,
+  submitOrder = false,
+  clientOrderId = null
+) {
   const trade = {
     symbol: optionData.symbol,
     optionType: optionData.optionType,
@@ -25,6 +49,9 @@ async function placePaperTrade(optionData, submitOrder = false) {
     side: "buy",
     limitPrice: optionData.entryPrice,
     timeInForce: "day",
+
+    // Unique ID for today's 8:45 entry
+    clientOrderId: clientOrderId,
   };
 
   console.log("Order request:", orderRequest);
@@ -54,4 +81,4 @@ async function placePaperTrade(optionData, submitOrder = false) {
   return trade;
 }
 
-export { placePaperTrade };
+export { placePaperTrade, findOrderByClientId };
