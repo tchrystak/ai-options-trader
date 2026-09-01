@@ -1,5 +1,6 @@
 import "dotenv/config";
 import { Alpaca } from "@alpacahq/alpaca-trade-api";
+import { waitForFill } from "./waitForFill.js";
 
 const alpaca = new Alpaca({
   keyId: process.env.APCA_API_KEY_ID,
@@ -58,20 +59,22 @@ async function manageExit(symbol, fillPrice, quantity) {
     if (bidPrice <= exitPrices.stopPrice) {
       console.log("STOP LOSS HIT");
 
-      // Sell the option to close the position
       const exitOrder = await alpaca.trading.orders.market(exitOrderRequest);
 
-      return exitOrder;
+      const filledExitOrder = await waitForFill(exitOrder.id);
+
+      return filledExitOrder;
     }
 
     // Check if the 5% quick scalp target has been reached
     if (bidPrice >= exitPrices.targetPrice) {
       console.log("PROFIT TARGET HIT");
 
-      // Sell the option to close the position
       const exitOrder = await alpaca.trading.orders.market(exitOrderRequest);
 
-      return exitOrder;
+      const filledExitOrder = await waitForFill(exitOrder.id);
+
+      return filledExitOrder;
     }
 
     // Wait 1 second before checking the bid again

@@ -12,10 +12,9 @@ const alpaca = new Alpaca({
 // Check whether Alpaca already has today's 8:45 entry order
 async function findOrderByClientId(clientOrderId) {
   try {
-    const order =
-      await alpaca.trading.orders.getOrderByClientOrderId({
-        clientOrderId: clientOrderId,
-      });
+    const order = await alpaca.trading.orders.getOrderByClientOrderId({
+      clientOrderId: clientOrderId,
+    });
 
     return order;
   } catch (error) {
@@ -32,7 +31,7 @@ async function findOrderByClientId(clientOrderId) {
 async function placePaperTrade(
   optionData,
   submitOrder = false,
-  clientOrderId = null
+  clientOrderId = null,
 ) {
   const trade = {
     symbol: optionData.symbol,
@@ -73,6 +72,26 @@ async function placePaperTrade(
       fillPrice,
       Number(filledOrder.qty),
     );
+
+    // Get the actual SELL fill price
+    const exitFillPrice = Number(exitOrder.filledAvgPrice);
+
+    // Calculate the realized P/L
+    const quantity = Number(filledOrder.qty);
+
+    const profitLoss = (exitFillPrice - fillPrice) * 100 * quantity;
+
+    // Calculate the realized percentage return
+    const profitLossPercent = ((exitFillPrice - fillPrice) / fillPrice) * 100;
+
+    console.log("-----------------------------------");
+    console.log("TRADE COMPLETE");
+    console.log("Entry fill:", fillPrice);
+    console.log("Exit fill:", exitFillPrice);
+    console.log("Quantity:", quantity);
+    console.log("Realized P/L:", `$${profitLoss.toFixed(2)}`);
+    console.log("Realized P/L %:", `${profitLossPercent.toFixed(2)}%`);
+    console.log("-----------------------------------");
 
     return exitOrder;
   }
