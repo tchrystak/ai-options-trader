@@ -40,7 +40,7 @@ async function placePaperTrade(optionData, submitOrder = false) {
     const fillPrice = Number(filledOrder.filledAvgPrice);
 
     // Monitor the position and automatically sell at
-    // either the 15% stop-loss or 45% profit target
+    // either the 7% stop-loss or 5% quick scalp target
     const exitOrder = await manageExit(
       filledOrder.symbol,
       fillPrice,

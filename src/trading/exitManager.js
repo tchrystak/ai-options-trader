@@ -8,12 +8,12 @@ const alpaca = new Alpaca({
 });
 
 function calculateExitPrices(fillPrice) {
-  // Hard stop-loss at 15% below the actual fill price
-  // Round UP so the stop does not exceed a 15% loss
-  const stopPrice = Math.ceil(fillPrice * 0.85 * 100) / 100;
+  // Hard stop-loss at 7% below the actual fill price
+  // Round UP so the stop does not exceed a 7% loss
+  const stopPrice = Math.ceil(fillPrice * 0.93 * 100) / 100;
 
-  // Profit target at 20% above the actual fill price
-  const targetPrice = Number((fillPrice * 1.20).toFixed(2));
+  // Quick scalp profit target at 5% above the actual fill price
+  const targetPrice = Number((fillPrice * 1.05).toFixed(2));
 
   return {
     stopPrice: stopPrice,
@@ -54,7 +54,7 @@ async function manageExit(symbol, fillPrice, quantity) {
       positionIntent: "sell_to_close",
     };
 
-    // Check if the 15% stop-loss has been reached
+    // Check if the 7% stop-loss has been reached
     if (bidPrice <= exitPrices.stopPrice) {
       console.log("STOP LOSS HIT");
 
@@ -64,7 +64,7 @@ async function manageExit(symbol, fillPrice, quantity) {
       return exitOrder;
     }
 
-    // Check if the 20% profit target has been reached
+    // Check if the 5% quick scalp target has been reached
     if (bidPrice >= exitPrices.targetPrice) {
       console.log("PROFIT TARGET HIT");
 
