@@ -77,8 +77,8 @@ async function manageExit(symbol, fillPrice, quantity) {
       return filledExitOrder;
     }
 
-    // Wait 1 second before checking the bid again
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    // Wait 0.25 seconds before checking the bid again
+    await new Promise((resolve) => setTimeout(resolve, 250));
   }
 }
 
