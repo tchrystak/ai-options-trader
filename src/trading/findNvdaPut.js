@@ -29,30 +29,29 @@ async function findNvdaPut() {
     }
   }
 
-let selectedContract = null;
+  let selectedContract = null;
 
-for (let i = 0; i < response.optionContracts.length; i++) {
-  const contract = response.optionContracts[i];
-  const strike = Number(contract.strikePrice);
+  for (let i = 0; i < response.optionContracts.length; i++) {
+    const contract = response.optionContracts[i];
+    const strike = Number(contract.strikePrice);
 
-  if (strike === highestStrike) {
-    if (
-      selectedContract === null ||
-      contract.expirationDate > selectedContract.expirationDate
-    ) {
-      selectedContract = contract;
+    if (strike === highestStrike) {
+      if (
+        selectedContract === null ||
+        contract.expirationDate > selectedContract.expirationDate
+      ) {
+        selectedContract = contract;
+      }
     }
   }
-}
 
-const optionQuotes =
-  await alpaca.marketData.options.optionLatestQuotes({
+  const optionQuotes = await alpaca.marketData.options.optionLatestQuotes({
     symbols: selectedContract.symbol,
   });
 
-const selectedQuote = optionQuotes.quotes[selectedContract.symbol];
+  const selectedQuote = optionQuotes.quotes[selectedContract.symbol];
 
-const entryPrice = selectedQuote.ap;
+  const entryPrice = Math.ceil(Number(selectedQuote.ap) * 100) / 100;
 
   return {
     symbol: selectedContract.symbol,
@@ -62,7 +61,6 @@ const entryPrice = selectedQuote.ap;
     quantity: 1,
     entryPrice: entryPrice,
   };
-
 }
 
 export { findNvdaPut };
