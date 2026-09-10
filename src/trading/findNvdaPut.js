@@ -10,22 +10,26 @@ const alpaca = new Alpaca({
 async function findNvdaPut() {
   const nvdaPrice = await alpaca.marketData.getLatestPrice("NVDA");
 
-  const lowestStrike = nvdaPrice - 10;
+  // Search for PUT strikes up to $10 ABOVE NVDA.
+  // For a PUT, strikes above the stock price are ITM.
+  const highestStrike = nvdaPrice + 10;
 
   const response = await alpaca.trading.assets.getOptionsContracts({
     underlyingSymbols: "NVDA",
     type: "put",
-    strikePriceGte: lowestStrike,
-    strikePriceLte: nvdaPrice,
+    strikePriceGte: nvdaPrice,
+    strikePriceLte: highestStrike,
   });
 
-  let highestStrike = 0;
+  // Find the LOWEST strike that is still above NVDA.
+  // This gives us the closest ITM PUT.
+  let lowestStrike = Infinity;
 
   for (let i = 0; i < response.optionContracts.length; i++) {
     const strike = Number(response.optionContracts[i].strikePrice);
 
-    if (strike > highestStrike) {
-      highestStrike = strike;
+    if (strike > nvdaPrice && strike < lowestStrike) {
+      lowestStrike = strike;
     }
   }
 
@@ -35,7 +39,7 @@ async function findNvdaPut() {
     const contract = response.optionContracts[i];
     const strike = Number(contract.strikePrice);
 
-    if (strike === highestStrike) {
+    if (strike === lowestStrike) {
       if (
         selectedContract === null ||
         contract.expirationDate > selectedContract.expirationDate
@@ -56,7 +60,7 @@ async function findNvdaPut() {
   return {
     symbol: selectedContract.symbol,
     optionType: "PUT",
-    strikePrice: highestStrike,
+    strikePrice: lowestStrike,
     expirationDate: selectedContract.expirationDate,
     quantity: 1,
     entryPrice: entryPrice,
